@@ -1,0 +1,33 @@
+#tourney-modules {
+  text-align: center;
+  text-decoration: none;
+}
+
+#tourney-modules .tourney-container {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#tourney-modules .player_list {
+  width: 350px;
+  margin: 0 auto;
+}
+
+#tourney-modules .player_description {
+  font-size: 1rem;
+  margin: 1rem;
+  text-align: left;
+}
+
+#tourney-modules .tourney-name {
+  margin: 1rem;
+}
+
+#tourney-modules .tourney-bonus,
+#tourney-modules .tourney-bet {
+  margin: 1rem;
+}
+
+#tourney-modules .in-battle {
+  color: orange;
+}

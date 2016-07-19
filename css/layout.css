@@ -1,0 +1,18 @@
+main {
+  text-align: center;
+  vertical-align: top;
+}
+
+#title {
+  display: inline-block;
+}
+
+.btn {
+  display: inline-block;
+  margin: 0 auto;
+  background-color: green;
+  color: #eee;
+  font-size: 1.2rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
