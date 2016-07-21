@@ -12,7 +12,7 @@
 
   for (var i = 0; i < numberOfTourneys; i += 1) {
     TourneyController.tourneys.push(new Tourney({
-      active_players : TourneyController.playerList,
+      active_players : TourneyController.playerList.slice(),
       index : i
     }));
     TourneyController.tourneys[i].init();

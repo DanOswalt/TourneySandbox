@@ -18,16 +18,12 @@
 
     if(winner.chips >= this.current_bet && loser.chips >= this.current_bet) {
       adjustment = this.current_bet;
-      // console.log('no adjustment', adjustment);
     } else {
       adjustment = winner.chips > loser.chips ? loser.chips : winner.chips;
-      // console.log('yes adjustment', adjustment);
     }
 
     winner.chips += adjustment;
     loser.chips -= adjustment;
-    // console.log('winner-chips', winner.chips);
-    // console.log('loser-chips', loser.chips);
 
     result.winner.calcRankScore(result.winner.tourneys[index]);
     result.loser.calcRankScore(result.loser.tourneys[index]);
@@ -71,16 +67,11 @@
 
   Tourney.prototype.removeDead = function (loser, t_index) {
     var self = this;
-    if(loser.tourneys[t_index].chips === 0) {
-      var p_index = self.active_players.indexOf(loser);
-      // console.log('player index', p_index);
-      var removed_player = self.active_players.splice(p_index, 1);
-      // console.log('loser:', loser.name);
-      // console.log('removed:', removed_player[0].name);
-      self.finished_players.push(removed_player[0]);
-      loser.tourneys[t_index].status = 'out';
-      loser.tourneys[t_index].finish = self.active_players.length + 1;
-    }
+    var p_index = self.active_players.indexOf(loser);
+    var removed_player = self.active_players.splice(p_index, 1);
+    self.finished_players.unshift(removed_player[0]);
+    loser.tourneys[t_index].status = 'out';
+    loser.tourneys[t_index].finish = self.active_players.length + 1;
   };
 
   //later: call w/ GO button
@@ -97,21 +88,16 @@
     $('#tourney-' + self.index).empty().append(self.updateHtml());
     result = self.getBattleResult();
 
-    //**********************************8
-    chips_in_play = self.active_players.reduce(function(a,b){
-      return a += b.tourneys[self.index].chips;
-    }, 0);
-    // console.log('before:', self.name, chips_in_play);
-
     self.adjustChipCounts(self.index, result);
     chips_in_play = self.active_players.reduce(function(a,b){
       return a += b.tourneys[self.index].chips;
     }, 0);
-    // console.log('after:', self.name, chips_in_play);
-    //************************************
 
+    console.log(result.loser.tourneys[self.index].chips);
+    if(result.loser.tourneys[self.index].chips === 0) {
+      self.removeDead(result.loser, self.index);
+    }
 
-    self.removeDead(result.loser, self.index);
     chips_in_play = self.active_players.reduce(function(a,b){
       return a += b.tourneys[self.index].chips;
     }, 0);
@@ -125,9 +111,9 @@
       self.sort(self.index);
       self.average_stack = self.calcAverageStack();
       self.current_bet = self.calcCurrentBet();
-      $('#tourney-' + self.index).empty().append(self.updateHtml());
     }
 
+    $('#tourney-' + self.index).empty().append(self.updateHtml());
 
 
 
@@ -179,18 +165,30 @@
     // '<h4 class="tourney-player1">Player1 <' + self.player1.description + '> </h4>' +
     // '<h4 class="tourney-player2">Player2 <' + self.player2.description + '> </h4>';
 
-    var htmlList = '<ol class="player_list">';
+    var activeList = '<ol class="player_list">';
 
     self.active_players.forEach(function(player, index){
-      htmlList += '<li class="player_description" data-id="' + player.tourneys[self.index].id + '">';
-      htmlList += player.description;
-      htmlList += ' [' + player.tourneys[self.index].chips + ']';
-      htmlList += '</li>';
+      activeList += '<li class="player_description" data-id="' + player.tourneys[self.index].id + '">';
+      activeList += player.description;
+      activeList += ' [' + player.tourneys[self.index].chips + ']';
+      activeList += '</li>';
     });
 
-    htmlList += '</ol></div>';
+    activeList += '</ol>';
 
-    return htmlHeader + htmlList;
+    var finishedList = '<ul class="finished_list">';
+
+    self.finished_players.forEach(function(player, index){
+      finishedList += '<li class="player_description" data-id="' + player.tourneys[self.index].id + '">';
+      finishedList += player.tourneys[self.index].finish + '. ';
+      finishedList += player.description;
+      finishedList += '</li>';
+    });
+
+    finishedList += '</ul></div>';
+
+
+    return htmlHeader + activeList + finishedList;
 
   };
 
