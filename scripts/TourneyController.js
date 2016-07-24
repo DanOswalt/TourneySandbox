@@ -5,6 +5,7 @@
     playerList : [],
     participants : 64,
     selected : null,
+    numberOfTourneys : 7,
     finished_tourneys : 0
   };
 
@@ -40,6 +41,47 @@
         type : this.randomType(),
         age : 1
       }));
+    }
+  };
+
+  TourneyController.newGame = function() {
+    var self = this;
+
+    if(localStorage.playerList) {
+      self.playerList = JSON.parse(localStorage.getItem('playerList'));
+      self.playerList = self.playerList.map(function(player){
+        return new Player({
+          id : player.id,
+          name : player.name,
+          color : player.color,
+          type : player.type,
+          age : player.age,
+          skill : player.skill,
+          description : player.description,
+          tourneys : [],
+          averageRank : player.id,
+          rankList : ''
+        });
+      });
+
+      self.playerList.sort(function(a, b){
+        return b.age - a.age;
+      });
+
+    } else {
+      self.createPlayerList();
+      localStorage.setItem('playerList', JSON.stringify(self.playerList));
+    }
+
+    for (var i = 0; i < self.numberOfTourneys; i += 1) {
+      self.tourneys.push(new Tourney({
+        active_players : self.playerList.slice(),
+        index : i
+      }));
+      self.tourneys[i].init();
+
+      $('#tourney-overall').empty().append(self.updateOverallStandingsHTML());
+      $('#tourney-modules').append(self.tourneys[i].updateHtml());
     }
   };
 
@@ -148,8 +190,9 @@
       if(index < 10) {
         list += '<li class="player_description" data-id="' + player.id + '">';
         list += player.description;
-        list += ' [' + player.averageRank.toFixed(2) + ']';
+        list += ' [' + player.averageRank.toFixed(2) + '] ';
         list += '</li>';
+        list += '<span class="ranklist">' + player.updateRankList() + '</span>';
       }
     });
 

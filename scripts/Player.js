@@ -31,28 +31,23 @@
   Player.prototype.getPlayerBonus = function(t_index) {
     var bonus = 0;
     var tourney = TourneyController.tourneys[t_index];
-    console.log('skill:', this.skill);
-    console.log('tcolor:', tourney.colorBonus);
-    console.log('pcolor:', this.color);
-    console.log('ttype:', tourney.typeBonus);
-    console.log('ptype:', this.type);
     if(tourney.colorBonus === this.color) {
-      bonus += this.skill * 0.25;
+      bonus += this.skill * 0.5;
     }
     if(tourney.typeBonus === this.type) {
-      bonus += this.skill * 0.25;
+      bonus += this.skill * 0.5;
     }
     if(tourney.colorBonus === this.color && tourney.typeBonus === this.type) {
-      bonus += this.skill * 0.25;
+      bonus += this.skill * 0.5;
     }
     console.log('bonus:', bonus);
     return bonus;
   };
 
   Player.prototype.updateRankList = function () {
-    this.tourneys.reduce(function(acc, tourney){
-      return acc += '<span class="rank-style-' + tourney.rank + '">' + tourney.rank + '</span>-';
-    }, '');
+    return this.tourneys.map(function(tourney){
+      return '<span class="rank-' + tourney.rank + '">' + tourney.rank + '</span>';
+    }).join(' ');
   };
 
   module.Player = Player;
