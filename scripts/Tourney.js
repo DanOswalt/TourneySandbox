@@ -9,6 +9,7 @@
     this.starting_chips = opts.starting_chips || 3;
     this.player1 = '';
     this.player2 = '';
+    this.status = 'active';
   };
 
   Tourney.prototype.adjustChipCounts = function (index, result) {
@@ -48,11 +49,15 @@
         id : starting_index,
         starting_index_score : self.total_players - starting_index,
         status : 'active',
-        rankScore : null,
+        averageRank : null,
+        averageRankScore : null,
         rank : starting_index + 1, //initially just the order in which they loaded
+        rankScore : null,
         finish : null
       });
       player.calcRankScore(player.tourneys[self.index]);
+      player.getAverageRank();
+      player.calcAverageRankScore();
     });
 
   };
@@ -72,6 +77,7 @@
     self.finished_players.unshift(removed_player[0]);
     loser.tourneys[t_index].status = 'out';
     loser.tourneys[t_index].finish = self.active_players.length + 1;
+    loser.tourneys[t_index].rank = self.active_players.length + 1; //rank equals finish
   };
 
   //later: call w/ GO button
@@ -84,44 +90,31 @@
     var chips_in_play;
 
     self.getTwoPlayers();
-    // TourneyController.addInBattleStyle(self.index, self.player1, self.player2);
-    $('#tourney-' + self.index).empty().append(self.updateHtml());
     result = self.getBattleResult();
-
     self.adjustChipCounts(self.index, result);
-    chips_in_play = self.active_players.reduce(function(a,b){
-      return a += b.tourneys[self.index].chips;
-    }, 0);
 
-    console.log(result.loser.tourneys[self.index].chips);
     if(result.loser.tourneys[self.index].chips === 0) {
       self.removeDead(result.loser, self.index);
     }
 
-    chips_in_play = self.active_players.reduce(function(a,b){
-      return a += b.tourneys[self.index].chips;
-    }, 0);
-    console.log('after remove dead:', self.name, chips_in_play);
-    console.log('*************************************');
-
-    console.log('active list:', self.active_players);
-    console.log('finished list:', self.finished_players);
-
     if(self.active_players.length > 1) {
       self.sort(self.index);
+      self.active_players.forEach(function(player, index){
+        player.tourneys[self.index].rank = index + 1;
+      });
+      TourneyController.playerList.forEach(function(player){
+        player.getAverageRank();
+        player.calcAverageRankScore();
+      });
+      TourneyController.sortLeaderboard();
       self.average_stack = self.calcAverageStack();
       self.current_bet = self.calcCurrentBet();
+    } else {
+      self.status = 'finished';
     }
 
     $('#tourney-' + self.index).empty().append(self.updateHtml());
-
-
-
-    //run step 2 of the ui: fadeIn w/ winner/loser colors
-    //update chipcount, sort the new list, remove loser if at 0
-    //run step 3 of the ui: fadeOut entire list
-    //refresh html
-    //run step 4 of the ui: fadeIn entire list with the last players still highlighted, then fadeOut highlights
+    $('#tourney-overall').empty().append(TourneyController.updateOverallStandingsHTML());
 
   };
 
@@ -139,7 +132,10 @@
   };
 
   Tourney.prototype.getBattleResult = function() {
-    if(Math.random() * this.player1.skill > Math.random() * this.player2.skill) {
+    var player1_bonus = this.player1.getPlayerBonus(this.index);
+    var player2_bonus = this.player2.getPlayerBonus(this.index);
+
+    if(Math.random() * (this.player1.skill + player1_bonus) > Math.random() * (this.player2.skill + player2_bonus)) {
       return {winner : this.player1, loser : this.player2};
     } else {
       return {winner : this.player2, loser : this.player1};
@@ -156,43 +152,42 @@
     var self = this;
     var htmlHeader =
     '<div id="tourney-' + self.index + '"class="tourney-container">' +
-    '<h2 class="tourney-name">' + self.name + '</h2>' +
-    '<div class="btn go-btn">Go</div>' +
-    '<div class="btn pause-btn">Pause</div>' +
-    '<h4 class="tourney-bonus"> Bonus: ' + self.colorBonus + ' ' + self.typeBonus + '</h4>' +
-    '<h4 class="tourney-bet">Stakes: ' + self.current_bet + '</h4>' +
-    '<h4 class="tourney-bet">Avg Stack: ' + self.average_stack.toFixed(2) + '</h4>';
-    // '<h4 class="tourney-player1">Player1 <' + self.player1.description + '> </h4>' +
-    // '<h4 class="tourney-player2">Player2 <' + self.player2.description + '> </h4>';
+    '<h2 class="tourney-name">' + self.name + ' (' + self.current_bet + ')</h2>' +
+    '<h4 class="tourney-bonus"> Bonus: ' + self.colorBonus + ' ' + self.typeBonus + '</h4>';
 
-    var activeList = '<ol class="player_list">';
+    var activeList = '<ul class="player_list">';
 
     self.active_players.forEach(function(player, index){
-      activeList += '<li class="player_description" data-id="' + player.tourneys[self.index].id + '">';
+      var liStarter = player.tourneys[self.index].id === TourneyController.selected ?
+        '<li class="player_description selected" data-id="' :
+        '<li class="player_description" data-id="';
+
+      activeList += liStarter + player.tourneys[self.index].id + '">';
+      activeList += player.tourneys[self.index].rank + '. ';
       activeList += player.description;
       activeList += ' [' + player.tourneys[self.index].chips + ']';
       activeList += '</li>';
     });
 
-    activeList += '</ol>';
+    activeList += '</ul>';
 
     var finishedList = '<ul class="finished_list">';
 
     self.finished_players.forEach(function(player, index){
-      finishedList += '<li class="player_description" data-id="' + player.tourneys[self.index].id + '">';
+      var liStarter = player.tourneys[self.index].id === TourneyController.selected ?
+        '<li class="player_description selected" data-id="' :
+        '<li class="player_description" data-id="';
+
+      finishedList += liStarter + player.tourneys[self.index].id + '">';
       finishedList += player.tourneys[self.index].finish + '. ';
       finishedList += player.description;
       finishedList += '</li>';
     });
 
     finishedList += '</ul></div>';
-
-
     return htmlHeader + activeList + finishedList;
 
   };
-
-
 
   module.Tourney = Tourney;
 

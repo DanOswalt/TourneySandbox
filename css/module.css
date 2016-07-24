@@ -1,26 +1,35 @@
 #tourney-modules {
+  display: block;
   text-align: center;
   text-decoration: none;
+  margin-left: 300px;
+  width: 2300px;
 }
 
 #tourney-modules .tourney-container {
   display: inline-block;
+  width: 300px;
   vertical-align: top;
+  padding: 0;
 }
 
 #tourney-modules .player_list {
-  width: 350px;
+  width: 300px;
   margin: 0 auto;
+  list-style-type: none;
+  margin-left: -1rem;
 }
 
 #tourney-modules .finished_list {
   color: #666;
   list-style-type: none;
+  margin-left: -1rem;
 }
 
 #tourney-modules .player_description {
-  font-size: 1rem;
-  margin: 1rem;
+  font-size: 0.75rem;
+  margin: 1rem	;
+  padding: 0;
   text-align: left;
 }
 
@@ -35,4 +44,25 @@
 
 #tourney-modules .in-battle {
   color: orange;
+}
+
+/*tourney-overall**********************************/
+
+#tourney-overall {
+  background-color: black;
+  position: fixed;
+  top: 50px;
+  left: 0;
+  height: 1000px;
+}
+
+#tourney-overall .tourney-overall-header {
+  margin: 0.5em auto;
+  margin-bottom: 1.5em;
+}
+
+/*tourney-overall**********************************/
+
+.selected {
+  color: yellow;
 }

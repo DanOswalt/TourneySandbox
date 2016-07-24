@@ -3,21 +3,13 @@
   var TourneyController = {
     tourneys : [],
     playerList : [],
-    participants : 64
+    participants : 64,
+    selected : null,
+    finished_tourneys : 0
   };
 
-  TourneyController.addInBattleStyle = function(t_index, p1, p2){
-    var $thisTourney = $('#tourney-' + t_index);
-    var $playerList = $thisTourney.find('.player_list');
-    var $p1 = $playerList.find('[data-id="' + p1.id + '"]');
-    var $p2 = $playerList.find('[data-id="' + p2.id + '"]');
-
-    $.each([$p1, $p2], function(){
-      $(this).addClass('in-battle').fadeIn(1200).delay(1200).animate({opacity: 0});
-    });
-
-    $thisTourney.find('tourney-player1').text(p1.name);
-
+  TourneyController.capitalise = function(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
   TourneyController.createPlayerList = function(){
@@ -37,6 +29,27 @@
         age += 1;
       }
     }
+  };
+
+  TourneyController.createNewPlayers = function(n, id) {
+    for (var i = 0; i < n; i++) {
+      this.playerList.push(new Player({
+        id : id + i,
+        name : this.randomName(),
+        color : this.randomColor(),
+        type : this.randomType(),
+        age : 1
+      }));
+    }
+  };
+
+  TourneyController.removeOldestGroup = function(n) {
+    //sort by youngest to oldest
+    TourneyController.playerList.sort(function(a, b){
+      return b.age - a.age;
+    });
+    //remove the first n
+    var removedPlayers = TourneyController.playerList.splice(0, n);
   };
 
   TourneyController.randomName = function() {
@@ -120,9 +133,32 @@
     return Math.floor(Math.random()*(max-min+1)+min);
   };
 
-  TourneyController.capitalise = function(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  TourneyController.sortLeaderboard = function() {
+    this.playerList.sort(function(a, b) {
+      return a.averageRankScore - b.averageRankScore;
+    });
   };
+
+  TourneyController.updateOverallStandingsHTML = function() {
+    var self = this;
+    var header = '<h2 class="tourney-overall-header">Leaderboard</h2>';
+    var list = '<ol class="overall_list">';
+
+    self.playerList.forEach(function(player, index){
+      if(index < 10) {
+        list += '<li class="player_description" data-id="' + player.id + '">';
+        list += player.description;
+        list += ' [' + player.averageRank.toFixed(2) + ']';
+        list += '</li>';
+      }
+    });
+
+    list += '</ol>';
+
+    return header + list;
+
+  };
+
 
   module.TourneyController = TourneyController;
 

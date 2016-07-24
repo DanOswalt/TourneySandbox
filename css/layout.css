@@ -3,13 +3,25 @@ main {
   vertical-align: top;
 }
 
+nav {
+  vertical-align: center;
+  position: fixed;
+  text-align: center;
+  background-color: black;
+  width: 300px;
+  padding-top: 1rem;
+}
+
 #title {
   display: inline-block;
+  margin-right: 2rem;
 }
 
 .btn {
   display: inline-block;
-  margin: 0 auto;
+  margin: 0 auto 1.5rem;
+  vertical-align: middle;
+  border-radius: 4px;
   background-color: green;
   color: #eee;
   font-size: 1.2rem;
